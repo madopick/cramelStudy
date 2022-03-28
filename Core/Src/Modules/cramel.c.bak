@@ -5,38 +5,16 @@
  *      Author: pudja
  */
 
-
-/***************************************************************************************************
- * Curve fit estimation evaluation code.
- *
- * Date         Version  Description
- * 20220223     1.0      First Release for curve fit estimation by using integer processing.
- * 20220325     2.0      Reduce processing time by optimize division operation with bit shift
- *
- **************************************************************************************************/
-
 #include "cramel.h"
 #include <string.h>
+#include "cmsis_gcc.h"				//update cramel Jenn
 
-
-#ifdef VER2_UPDATE
-#include "cmsis_gcc.h"															//update cramel Jenn
 static uint8_t vFunc_GetMinVal(uint8_t *u8p_src, uint8_t u8_len);				//update cramel Jenn
-#endif
-
-
-
-
-
 static int64_t vFunc_GetMtrxDet3x3(int32_t *s32p_mtrx);
 static void vFunc_GetCoefByCramersRule(int32_t *s32p_arrA, int32_t *s32p_arrB, curfitCoef_t *p_curfitCoef);
 
-void vFucn_CurfitEstimation(int16_t* s16p_data, curfitCoef_t* p_curfitCoef, uint8_t u8_len, uint64_t u64_bitMap);
-void vFunc_GetCurveFitLine(int16_t* s16p_dest, curfitCoef_t* p_curfitCoef, uint8_t u8_len);
 
 
-
-#ifdef VER2_UPDATE
 /********************************
  * update cramel Jenn
  ********************************/
@@ -52,7 +30,6 @@ static uint8_t vFunc_GetMinVal(uint8_t *u8p_src, uint8_t u8_len)
 
   return u8_minVal;
 }
-#endif
 
 /*
  *   @brief Computes determinant 3x3 matrix
@@ -85,11 +62,8 @@ static void vFunc_GetCoefByCramersRule(int32_t *s32p_arrA,
 {
   int32_t s32_matrix[9];
   int64_t s64_detA, s64_detC0, s64_detC1, s64_detC2;
-
-#ifdef VER2_UPDATE
   uint8_t u8_lzc[3]; //to store smallest number of leading zero count for the determinant (update cramel Jenn)
   uint8_t u8_bsCnt; // The number of bit shift (update cramel Jenn)
-#endif
 
   // Calculate for Matrix A determinant
   s64_detA = vFunc_GetMtrxDet3x3(s32p_arrA);
@@ -222,88 +196,20 @@ void vFunc_CurfitEstimation(int16_t *s16p_data, curfitCoef_t *p_curfitCoef, uint
   vFunc_GetCoefByCramersRule(s32_arrA, s32_arrB, p_curfitCoef);
 }
 
-
 void vFunc_GetCurveFitLine(int16_t *s16p_dest, curfitCoef_t *p_curfitCoef, uint8_t u8_len)
 {
   int64_t s64_temp;
 
   for (int32_t u32_i = u8_len; u32_i--;)
   {
-#ifndef VER2_UPDATE
     s64_temp = p_curfitCoef->s64_c0 + (p_curfitCoef->s64_c1 * u32_i) + (p_curfitCoef->s64_c2 * u32_i * u32_i);
     s16p_dest[u32_i] = (int16_t) (s64_temp / p_curfitCoef->s64_scale);
-#else
-    s64_temp = (p_curfitCoef->s8_signC0 * p_curfitCoef->s64_c0)
-        + (p_curfitCoef->s8_signC1 * p_curfitCoef->s64_c1 * u32_i)
-        + (p_curfitCoef->s8_signC2 * p_curfitCoef->s64_c2 * u32_i * u32_i);
 
-    s16p_dest[u32_i] = (int16_t) (s64_temp >> p_curfitCoef->u8_scale);
-#endif
+    s64_temp = (p_curfitCoef->s8_signC0 * p_curfitCoef->s64_c0)
+            + (p_curfitCoef->s8_signC1 * p_curfitCoef->s64_c1 * u32_i)
+            + (p_curfitCoef->s8_signC2 * p_curfitCoef->s64_c2 * u32_i * u32_i);
+
+        s16p_dest[u32_i] = (int16_t) (s64_temp >> p_curfitCoef->u8_scale);
   }
 }
-
-
-
-/*
-*
-*/
-void vFucn_CurfitEstimation(int16_t* s16p_data, curfitCoef_t* p_curfitCoef, uint8_t u8_len, uint64_t u64_bitMap)
-{
-    uint32_t u32_x = 0;
-		int32_t s32_arrA[9];
-		int32_t s32_arrB[3];
-
-		memset(s32_arrA, 0, sizeof(s32_arrA));
-		memset(s32_arrB, 0, sizeof(s32_arrB));
-
-		for (uint32_t u32_i = 0; u32_i < u8_len; u32_i++)
-		{
-			if(0 != (u64_bitMap & (uint64_t)(1) << u32_i))
-			{
-				// count of points (n)
-				s32_arrA[0]++;
-
-				// X
-				u32_x = u32_i;
-
-				// sum of x values.
-				s32_arrA[1] += u32_x;
-				s32_arrA[3] = s32_arrA[1];
-
-				// sum of y values.
-				s32_arrB[0] += (int32_t)s16p_data[u32_i];
-
-				// sum of xy values.
-				s32_arrB[1] += ((uint32_t)s16p_data[u32_i] * u32_x);
-
-				// x^2
-				u32_x = (u32_x * u32_i);
-
-				// sum of x^2 values.
-				s32_arrA[2] += u32_x;
-				s32_arrA[4] = s32_arrA[2];
-				s32_arrA[6] = s32_arrA[2];
-
-				// sum of x2y values.
-				s32_arrB[2] += (s16p_data[u32_i] * (int32_t)(u32_x));
-
-				// x^3
-				u32_x = u32_x * u32_i;
-
-				// sum of x^3 values
-				s32_arrA[5] += u32_x;
-				s32_arrA[7] = s32_arrA[5];
-
-				// x^4
-				u32_x = u32_x*u32_i;
-
-				// sum of x^4 values
-				s32_arrA[8] += u32_x;
-			}
-		}
-
-    vFunc_GetCoefByCramersRule(s32_arrA, s32_arrB, p_curfitCoef);
-}
-
-
 
