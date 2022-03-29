@@ -10,16 +10,6 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include Drivers/STM32F4xx_HAL_Driver/Src/subdir.mk
--include Drivers/CMSIS/DSP/Source/TransformFunctions/subdir.mk
--include Drivers/CMSIS/DSP/Source/SupportFunctions/subdir.mk
--include Drivers/CMSIS/DSP/Source/StatisticsFunctions/subdir.mk
--include Drivers/CMSIS/DSP/Source/MatrixFunctions/subdir.mk
--include Drivers/CMSIS/DSP/Source/FilteringFunctions/subdir.mk
--include Drivers/CMSIS/DSP/Source/FastMathFunctions/subdir.mk
--include Drivers/CMSIS/DSP/Source/ControllerFunctions/subdir.mk
--include Drivers/CMSIS/DSP/Source/ComplexMathFunctions/subdir.mk
--include Drivers/CMSIS/DSP/Source/CommonTables/subdir.mk
--include Drivers/CMSIS/DSP/Source/BasicMathFunctions/subdir.mk
 -include Drivers/CMSIS/DSP/Helper/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/Modules/subdir.mk

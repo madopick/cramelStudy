@@ -141,7 +141,7 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   SystemCoreClockUpdate();
-  printf("\r\nINIT OK @ %ld MHz\r\n",SystemCoreClock/1000000);
+  printf("\r\nINIT GCC OK @ %ld MHz\r\n",SystemCoreClock/1000000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
